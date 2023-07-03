@@ -1,0 +1,20 @@
+{
+  "name": "contributors_map",
+  "version": "1.0.0",
+  "description": "Create a contributors map for your own open source rpeo",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Open",
+    "source",
+    "repo",
+    "github",
+    "map",
+    "data",
+    "visualisation"
+  ],
+  "author": "a0m0rajab",
+  "license": "ISC"
+}
