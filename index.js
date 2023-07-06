@@ -5,6 +5,7 @@ const { Octokit, App } = require("octokit");
 const { graphql } = require("@octokit/graphql");
 const octokit = new Octokit({ auth: `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` });
 const cities = require("./cities.json");
+const synonyms = require("./synonyms.json");
 
 async function getContributors(name) {
   const {
@@ -45,9 +46,9 @@ async function getContributors(name) {
   let emptyCounter = 0;
   locationList.forEach(location => {
     let norm = locationNormalisation(location);
-    if(norm == 'unknown') {
-    emptyCounter++;
-    console.log(location, " country code " ,  locationNormalisation(location));
+    if (norm == 'unknown') {
+      emptyCounter++;
+      console.log(location, " country code ", locationNormalisation(location));
     }
   });
   console.log("empty counter ", emptyCounter);
@@ -57,27 +58,25 @@ async function getContributors(name) {
 
 function locationNormalisation(location) {
   location = location || "";
+  location = location.replace(/[|-]/g, ",");
   let parts = location.split(",");
   let countryCode = 'unknown';
+  let cityInfo;
   cities.forEach(city => {
-    if (parts.length == 3) {
-      if (parts[0] === city.name || parts[0] === city.country_name || parts[0] === city.region_name) {
-        countryCode = city.country_code
-        return; 
-      }
-    } else if (parts.length == 2) {
-      if (parts[0] === city.name || parts[0] === city.country_name || parts[0] === city.region_name) {
-        countryCode = city.country_code
-        return;
-      }
-
-    } else if (parts.length == 1) {
-      if (parts[0] === city.name || parts[0] === city.country_name || parts[0] === city.region_name){
-        countryCode = city.country_code
-        return;
-      }
-    }
-  })
+    parts.forEach(part => {
+      part = part.trim();
+      cityInfo = Object.keys(city);
+      cityInfo.forEach(info => {
+        if(synonyms[part]) {
+          part = synonyms[part];
+        }
+        if (part === city[info]) {
+          countryCode = city.country_code;
+          return;
+        }
+      });
+    });
+  });
   return countryCode;
 }
 
