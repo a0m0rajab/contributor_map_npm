@@ -16,5 +16,9 @@
     "visualisation"
   ],
   "author": "a0m0rajab",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/graphql": "^6.0.1",
+    "octokit": "^2.1.0"
+  }
 }
