@@ -37,9 +37,11 @@ async function getContributors(name) {
   let locationCount = {};
   let unknownLocation = new Set();
   let userLocation;
+  let emptyCounter = 0;
   for (const user in locations) {
     userLocation = locationNormalisation(locations[user].location);
     if(userLocation == 'unknown') {
+      emptyCounter++;
       unknownLocation.add(locations[user].location);
       continue;
     }
@@ -50,15 +52,14 @@ async function getContributors(name) {
     }
   }
 
-  let locationList = Object.keys(locationCount);
-  let emptyCounter = 0;
-  locationList.forEach(location => {
-    let norm = locationNormalisation(location);
-    if (norm == 'unknown') {
-      emptyCounter++;
-      console.log(location, " country code ", locationNormalisation(location));
-    }
-  });
+  // let locationList = Object.keys(locationCount);
+  // locationList.forEach(location => {
+  //   let norm = locationNormalisation(location);
+  //   if (norm == 'unknown') {
+  //     emptyCounter++;
+  //     console.log(location, " country code ", locationNormalisation(location));
+  //   }
+  // });
   console.log("empty counter ", emptyCounter);
   console.log(new Array(...unknownLocation).join('\n'));
   console.log("Locations", locationCount);
