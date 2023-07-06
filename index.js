@@ -32,9 +32,14 @@ async function getContributors(name) {
   let locations = await octokit.graphql(query);
   debugger;
   let locationCount = {};
+  let unknownLocation = new Set();
   let userLocation;
   for (const user in locations) {
     userLocation = locationNormalisation(locations[user].location);
+    if(userLocation == 'unknown') {
+      unknownLocation.add(locations[user].location);
+      continue;
+    }
     if (locationCount[userLocation]) {
       locationCount[userLocation]++;
     } else {
@@ -52,6 +57,8 @@ async function getContributors(name) {
     }
   });
   console.log("empty counter ", emptyCounter);
+  console.log(new Array(...unknownLocation).join(' '));
+
   debugger;
 
 }
@@ -63,31 +70,33 @@ function locationNormalisation(location) {
   let spaceBreaks = location.split(" ");
   let countryCode = 'unknown';
   let cityInfo;
-  cities.forEach(city => {
+
+  cities.every(city => {
     cityInfo = Object.keys(city);
-    cityInfo.forEach(info => {
+    return cityInfo.every(info => {
 
-      parts.forEach(part => {
+      return parts.every(part => {
         part = part.trim();
         if (synonyms[part]) {
           part = synonyms[part];
         }
         if (part === city[info]) {
           countryCode = city.country_code;
-          return;
+          return false;
         }
+        return true;
       });
 
-      spaceBreaks.forEach(part => {
-        part = part.trim();
-        if (synonyms[part]) {
-          part = synonyms[part];
-        }
-        if (part === city[info]) {
-          countryCode = city.country_code;
-          return;
-        }
-      });
+      // spaceBreaks.forEach(part => {
+      //   part = part.trim();
+      //   if (synonyms[part]) {
+      //     part = synonyms[part];
+      //   }
+      //   if (part === city[info]) {
+      //     countryCode = city.country_code;
+      //     return;
+      //   }
+      // });
     });
 
   });
@@ -95,7 +104,8 @@ function locationNormalisation(location) {
 }
 
 getContributors("tensorflow/tensorflow");
-// console.log(locationNormalisation("Dresden"))
+console.log(locationNormalisation("Dresden"))
+console.log(locationNormalisation("San Francisco"))
 
 // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-contributors
 // https://github.com/tunaitis/contributor-map/blob/master/internal/github/github.go
