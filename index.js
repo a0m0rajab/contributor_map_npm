@@ -8,13 +8,14 @@ const cities = require("./cities.json");
 const synonyms = require("./synonyms.json");
 
 async function getContributors(name) {
+  name = name.split("/");
   const {
     data: { login },
   } = await octokit.rest.users.getAuthenticated();
   // console.log("Hello, %s", login);
   const iterator = octokit.paginate.iterator(octokit.rest.repos.listContributors, {
-    owner: "tensorflow",
-    repo: "tensorflow",
+    owner: name[0],
+    repo: name[1],
     per_page: 100,
   });
 
@@ -23,6 +24,7 @@ async function getContributors(name) {
   let query = `{`;
   for await (const { data: users } of iterator) {
     for (const user of users) {
+      if (user.login.includes("[bot]")) continue;
       // console.log("User #%d: %d %s ", i++ ,user.id, user.login);
       query += `user${i++}: user(login: "${user.login}") {location login}`;
     }
@@ -30,6 +32,7 @@ async function getContributors(name) {
   query += `}`;
   debugger;
   let locations = await octokit.graphql(query);
+  console.log("Number of contributors", Object.keys(locations).length);
   debugger;
   let locationCount = {};
   let unknownLocation = new Set();
@@ -57,15 +60,15 @@ async function getContributors(name) {
     }
   });
   console.log("empty counter ", emptyCounter);
-  console.log(new Array(...unknownLocation).join(' '));
-
+  console.log(new Array(...unknownLocation).join('\n'));
+  console.log("Locations", locationCount);
   debugger;
-
+  return locationCount;
 }
 
 function locationNormalisation(location) {
   if(!location) return "unknown";
-  location = location.replace(/[|-]/g, ",");
+  location = location.replace(/[\(\)/|-]/g, ",");
   let parts = location.split(",");
   let spaceBreaks = location.split(" ");
   let countryCode = 'unknown';
@@ -103,7 +106,7 @@ function locationNormalisation(location) {
   return countryCode;
 }
 
-getContributors("tensorflow/tensorflow");
+getContributors("vuejs/core");
 console.log(locationNormalisation("Dresden"))
 console.log(locationNormalisation("San Francisco"))
 
