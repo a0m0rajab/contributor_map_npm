@@ -34,7 +34,7 @@ async function getContributors(name) {
   let locationCount = {};
   let userLocation;
   for (const user in locations) {
-    userLocation = locations[user].location;
+    userLocation = locationNormalisation(locations[user].location);
     if (locationCount[userLocation]) {
       locationCount[userLocation]++;
     } else {
@@ -57,17 +57,30 @@ async function getContributors(name) {
 }
 
 function locationNormalisation(location) {
-  location = location || "";
+  if(!location) return "unknown";
   location = location.replace(/[|-]/g, ",");
   let parts = location.split(",");
+  let spaceBreaks = location.split(" ");
   let countryCode = 'unknown';
   let cityInfo;
   cities.forEach(city => {
-    parts.forEach(part => {
-      part = part.trim();
-      cityInfo = Object.keys(city);
-      cityInfo.forEach(info => {
-        if(synonyms[part]) {
+    cityInfo = Object.keys(city);
+    cityInfo.forEach(info => {
+
+      parts.forEach(part => {
+        part = part.trim();
+        if (synonyms[part]) {
+          part = synonyms[part];
+        }
+        if (part === city[info]) {
+          countryCode = city.country_code;
+          return;
+        }
+      });
+
+      spaceBreaks.forEach(part => {
+        part = part.trim();
+        if (synonyms[part]) {
           part = synonyms[part];
         }
         if (part === city[info]) {
@@ -76,6 +89,7 @@ function locationNormalisation(location) {
         }
       });
     });
+
   });
   return countryCode;
 }
