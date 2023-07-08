@@ -6,6 +6,8 @@ const { graphql } = require("@octokit/graphql");
 const octokit = new Octokit({ auth: `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` });
 const cities = require("./cities.json");
 const synonyms = require("./synonyms.json");
+const fs = require('fs');
+
 
 async function getContributors(name) {
   name = name.split("/");
@@ -40,7 +42,7 @@ async function getContributors(name) {
   let emptyCounter = 0;
   for (const user in locations) {
     userLocation = locationNormalisation(locations[user].location);
-    if(userLocation == 'unknown') {
+    if (userLocation == 'unknown') {
       emptyCounter++;
       unknownLocation.add(locations[user].location);
       continue;
@@ -64,11 +66,32 @@ async function getContributors(name) {
   console.log(new Array(...unknownLocation).join('\n'));
   console.log("Locations", locationCount);
   debugger;
-  return locationCount;
+  return {
+    locationCount: locationCount,
+    unknownCount: emptyCounter,
+    locationsString: new Array(...unknownLocation).join('\n'),
+  };
+}
+
+function drawMap(locations, name) {
+  var data = fs.readFileSync('map.svg', 'utf-8');
+  let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a- b))
+  var highest = Array.from(legend).pop();
+  let style = "<style>";
+  for (const location in locations.locationCount){
+    style += `\t .${location.toLocaleLowerCase()} { fill: rgba(250,0,0, ${locations.locationCount[location]/highest}); }\n`
+  }
+  style += "</style>"
+
+  var newValue = data.replace(`<!-- map_style -->`, style);
+
+  fs.writeFileSync( name.replace('/','_') + '.svg', newValue, 'utf-8');
+
+  console.log('readFileSync complete');
 }
 
 function locationNormalisation(location) {
-  if(!location) return "unknown";
+  if (!location) return "unknown";
   location = location.replace(/[\(\)/|-]/g, ",");
   let parts = location.split(",");
   let spaceBreaks = location.split(" ");
@@ -107,7 +130,11 @@ function locationNormalisation(location) {
   return countryCode;
 }
 
-getContributors("vuejs/core");
+async function drawMapWrapper(name) {
+  let locations = await getContributors(name);
+  drawMap(locations, name);
+}
+drawMapWrapper("vuejs/core");
 console.log(locationNormalisation("Dresden"))
 console.log(locationNormalisation("San Francisco"))
 
