@@ -103,6 +103,11 @@ function locationNormalisation(location) {
   if (!location) return "unknown";
   location = location.replace(/[\(\)/|-]/g, ",");
   let parts = location.split(",");
+  parts = parts.map(part => {
+    part = part.trim().toLowerCase();
+    return part.charAt(0).toUpperCase() + part.slice(1);
+  });
+
   let spaceBreaks = location.split(" ");
   let countryCode = 'unknown';
   let cityInfo;
@@ -112,7 +117,6 @@ function locationNormalisation(location) {
     return cityInfo.every(info => {
 
       return parts.every(part => {
-        part = part.trim();
         if (synonyms[part]) {
           part = synonyms[part];
         }
@@ -143,22 +147,24 @@ async function drawMapWrapper(name) {
   let locations = await getContributors(name);
   drawMap(locations, name);
 }
-drawMapWrapper("calcom/cal.com");
-let projects = [
-  "tensorflow/tensorflow",
-  "facebook/react",
-  "vuejs/vue",
-  "angular/angular",
-  "microsoft/vscode",
-  "microsoft/TypeScript",
-  "denoland/deno",
-  "nodejs/node",
-];
-projects.forEach(project => {
-  drawMapWrapper(project);
-});
-console.log(locationNormalisation("Dresden"))
-console.log(locationNormalisation("San Francisco"))
+// drawMapWrapper("calcom/cal.com");
+// let projects = [
+//   "tensorflow/tensorflow",
+//   "facebook/react",
+//   "vuejs/vue",
+//   "angular/angular",
+//   "microsoft/vscode",
+//   "microsoft/TypeScript",
+//   "denoland/deno",
+//   "nodejs/node",
+// ];
+// projects.forEach(project => {
+//   drawMapWrapper(project);
+// });
+// console.log(locationNormalisation("Dresden"))
+// console.log(locationNormalisation("San Francisco"))
+console.log(locationNormalisation("HangZhou"))
+
 
 // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-contributors
 // https://github.com/tunaitis/contributor-map/blob/master/internal/github/github.go
