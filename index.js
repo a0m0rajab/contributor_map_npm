@@ -83,7 +83,12 @@ function drawMap(locations, name) {
   }
   style += "</style>"
 
-  var newValue = data.replace(`<!-- map_style -->`, style);
+  var newValue = data.replace(`<!-- map_style -->`, style); 
+
+  for (const location in locations.locationCount){
+    let lowerCase = location.toLocaleLowerCase();
+    newValue = newValue.replace(`<!-- ${lowerCase}_contributions -->`, ` ${locations.locationCount[location]} Contributors`);
+  };
 
   fs.writeFileSync( name.replace('/','_') + '.svg', newValue, 'utf-8');
 
