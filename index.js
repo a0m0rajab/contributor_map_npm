@@ -79,7 +79,7 @@ function drawMap(locations, name) {
   var highest = Array.from(legend).pop();
   let style = "<style>";
   for (const location in locations.locationCount){
-    style += `\t .${location.toLocaleLowerCase()} { fill: rgba(250,0,0, ${locations.locationCount[location]/highest}); }\n`
+    style += `\t .${location.toLocaleLowerCase()} { fill: rgba(250,0,0, ${getStep(locations.locationCount[location]/highest)}); }\n`
   }
   style += "</style>"
 
@@ -88,6 +88,10 @@ function drawMap(locations, name) {
   fs.writeFileSync( name.replace('/','_') + '.svg', newValue, 'utf-8');
 
   console.log('readFileSync complete');
+}
+
+function getStep(number){
+  return Math.ceil(number * 10) / 10;
 }
 
 function locationNormalisation(location) {
@@ -134,7 +138,20 @@ async function drawMapWrapper(name) {
   let locations = await getContributors(name);
   drawMap(locations, name);
 }
-drawMapWrapper("vuejs/core");
+drawMapWrapper("calcom/cal.com");
+let projects = [
+  "tensorflow/tensorflow",
+  "facebook/react",
+  "vuejs/vue",
+  "angular/angular",
+  "microsoft/vscode",
+  "microsoft/TypeScript",
+  "denoland/deno",
+  "nodejs/node",
+];
+projects.forEach(project => {
+  drawMapWrapper(project);
+});
 console.log(locationNormalisation("Dresden"))
 console.log(locationNormalisation("San Francisco"))
 
