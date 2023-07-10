@@ -76,21 +76,23 @@ function drawMap(locations, name) {
   let legendDetails = [];
   let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a- b))
   var highest = Array.from(legend).pop();
+  let step = Math.round(highest / 10);
+  for (let i = 0; i <= 10; i++) {
+    legendDetails[i] = i * step;
+  }
   let style = "<style>";
   for (const location in locations.locationCount){
     let transparencyStep = getStep(locations.locationCount[location]/highest);
-    
-    if(legendDetails[transparencyStep*10]){
-      legendDetails[transparencyStep*10].push(locations.locationCount[location]);
-    }else {
-      legendDetails[transparencyStep*10] = [locations.locationCount[location]];
-    }
-    
     style += `\t .${location.toLocaleLowerCase()} { fill: rgba(250,0,0, ${transparencyStep}); }\n`
   }
-  style += "</style>"
+  style += "#legend10 { display: inline !important; }";
+  style += "</style>";
 
   var newValue = data.replace(`<!-- map_style -->`, style); 
+
+  for (let i = 0; i <= 10; i++) {
+    newValue = newValue.replace(`>%${i}<`, `>${legendDetails[i]}<`);
+  }
 
   for (const location in locations.locationCount){
     let lowerCase = location.toLocaleLowerCase();
