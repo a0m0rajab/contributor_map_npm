@@ -77,29 +77,36 @@ function drawMap(locations, name) {
   let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a- b))
   var highest = Array.from(legend).pop();
   let step = Math.round(highest / 10);
+  let paletteColors = ``;
   for (let i = 0; i <= 10; i++) {
-    legendDetails[i] = i * step;
+    let numbers = i * step;
+    legendDetails[i] = numbers;
+    paletteColors += `.palette-color-${i} { fill: rgba(250,0,0, ${numbers/highest}) !important; }\n`;
+
   }
-  let style = "<style>";
+  let style = "<style>\n";
+  style += paletteColors;
+
   for (const location in locations.locationCount){
     let transparencyStep = getStep(locations.locationCount[location]/highest);
     style += `\t .${location.toLocaleLowerCase()} { fill: rgba(250,0,0, ${transparencyStep}); }\n`
   }
-  style += "#legend10 { display: inline !important; }";
+  style += "#legend9 { display: inline !important; }";
+  
   style += "</style>";
 
-  var newValue = data.replace(`<!-- map_style -->`, style); 
+  var newValue = data.replace(/<!-- map_style -->/g, style); 
 
   for (let i = 0; i <= 10; i++) {
-    newValue = newValue.replace(`>%${i}<`, `>${legendDetails[i]}<`);
+    newValue = newValue.replace(new RegExp(`>%${i}<`, 'g'), `>${legendDetails[i]}<`);
   }
 
   for (const location in locations.locationCount){
     let lowerCase = location.toLocaleLowerCase();
-    newValue = newValue.replace(`<!-- ${lowerCase}_contributions -->`, ` ${locations.locationCount[location]} Contributors`);
+    newValue = newValue.replace(new RegExp(`<!-- ${lowerCase}_contributions -->`, "g"), ` ${locations.locationCount[location]} Contributors`);
   };
 
-  fs.writeFileSync( name.replace('/','_') + '.svg', newValue, 'utf-8');
+  fs.writeFileSync( name.replace(/\//g,'_') + '.svg', newValue, 'utf-8');
 
   console.log('readFileSync complete');
 }
