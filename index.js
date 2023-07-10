@@ -32,10 +32,8 @@ async function getContributors(name) {
     }
   }
   query += `}`;
-  debugger;
   let locations = await octokit.graphql(query);
   console.log("Number of contributors", Object.keys(locations).length);
-  debugger;
   let locationCount = {};
   let unknownLocation = new Set();
   let userLocation;
@@ -65,7 +63,7 @@ async function getContributors(name) {
   console.log("empty counter ", emptyCounter);
   console.log(new Array(...unknownLocation).join('\n'));
   console.log("Locations", locationCount);
-  debugger;
+
   return {
     locationCount: locationCount,
     unknownCount: emptyCounter,
@@ -75,11 +73,20 @@ async function getContributors(name) {
 
 function drawMap(locations, name) {
   var data = fs.readFileSync('map.svg', 'utf-8');
+  let legendDetails = [];
   let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a- b))
   var highest = Array.from(legend).pop();
   let style = "<style>";
   for (const location in locations.locationCount){
-    style += `\t .${location.toLocaleLowerCase()} { fill: rgba(250,0,0, ${getStep(locations.locationCount[location]/highest)}); }\n`
+    let transparencyStep = getStep(locations.locationCount[location]/highest);
+    
+    if(legendDetails[transparencyStep*10]){
+      legendDetails[transparencyStep*10].push(locations.locationCount[location]);
+    }else {
+      legendDetails[transparencyStep*10] = [locations.locationCount[location]];
+    }
+    
+    style += `\t .${location.toLocaleLowerCase()} { fill: rgba(250,0,0, ${transparencyStep}); }\n`
   }
   style += "</style>"
 
@@ -147,23 +154,23 @@ async function drawMapWrapper(name) {
   let locations = await getContributors(name);
   drawMap(locations, name);
 }
-// drawMapWrapper("calcom/cal.com");
-// let projects = [
-//   "tensorflow/tensorflow",
-//   "facebook/react",
-//   "vuejs/vue",
-//   "angular/angular",
-//   "microsoft/vscode",
-//   "microsoft/TypeScript",
-//   "denoland/deno",
-//   "nodejs/node",
-// ];
-// projects.forEach(project => {
-//   drawMapWrapper(project);
-// });
+drawMapWrapper("calcom/cal.com");
+let projects = [
+  "tensorflow/tensorflow",
+  "facebook/react",
+  "vuejs/vue",
+  "angular/angular",
+  "microsoft/vscode",
+  "microsoft/TypeScript",
+  "denoland/deno",
+  "nodejs/node",
+];
+projects.forEach(project => {
+  drawMapWrapper(project);
+});
 // console.log(locationNormalisation("Dresden"))
 // console.log(locationNormalisation("San Francisco"))
-console.log(locationNormalisation("HangZhou"))
+// console.log(locationNormalisation("HangZhou"))
 
 
 // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-contributors
