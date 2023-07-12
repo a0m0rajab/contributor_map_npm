@@ -1,12 +1,12 @@
 // write a function that takes: accessToken, name, page and returns a list of contributors
 // https://developer.github.com/v3/repos/#list-contributors
 
-const { Octokit, App } = require("octokit");
-const { graphql } = require("@octokit/graphql");
-const octokit = new Octokit({ auth: `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` });
+const { Octokit } = require("octokit");
 const cities = require("./cities.json");
 const synonyms = require("./synonyms.json");
 const fs = require('fs');
+require('dotenv').config()
+const octokit = new Octokit({ auth: process.env.GitHubToken });
 
 
 async function getContributors(name) {
@@ -121,7 +121,13 @@ function locationNormalisation(location) {
   let parts = location.split(",");
   parts = parts.map(part => {
     part = part.trim().toLowerCase();
-    return part.charAt(0).toUpperCase() + part.slice(1);
+    if (synonyms[part]) {
+      part = synonyms[part];
+    }
+    part = part.split(" ").map(part => {
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    }).join(" ");
+    return part;
   });
 
   let spaceBreaks = location.split(" ");
@@ -133,9 +139,6 @@ function locationNormalisation(location) {
     return cityInfo.every(info => {
 
       return parts.every(part => {
-        if (synonyms[part]) {
-          part = synonyms[part];
-        }
         if (part === city[info]) {
           countryCode = city.country_code;
           return false;
@@ -163,23 +166,23 @@ async function drawMapWrapper(name) {
   let locations = await getContributors(name);
   drawMap(locations, name);
 }
-drawMapWrapper("calcom/cal.com");
-let projects = [
-  "tensorflow/tensorflow",
-  "facebook/react",
-  "vuejs/vue",
-  "angular/angular",
-  "microsoft/vscode",
-  "microsoft/TypeScript",
-  "denoland/deno",
-  "nodejs/node",
-];
-projects.forEach(project => {
-  drawMapWrapper(project);
-});
-// console.log(locationNormalisation("Dresden"))
-// console.log(locationNormalisation("San Francisco"))
-// console.log(locationNormalisation("HangZhou"))
+// drawMapWrapper("calcom/cal.com");
+// let projects = [
+//   "tensorflow/tensorflow",
+//   "facebook/react",
+//   "vuejs/vue",
+//   "angular/angular",
+//   "microsoft/vscode",
+//   "microsoft/TypeScript",
+//   "denoland/deno",
+//   "nodejs/node",
+// ];
+// projects.forEach(project => {
+//   drawMapWrapper(project);
+// });
+console.log(locationNormalisation("Dresden"))
+console.log(locationNormalisation("San Francisco"))
+console.log(locationNormalisation("HangZhou"))
 
 
 // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-contributors
