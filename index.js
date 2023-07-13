@@ -1,6 +1,3 @@
-// write a function that takes: accessToken, name, page and returns a list of contributors
-// https://developer.github.com/v3/repos/#list-contributors
-
 const { Octokit } = require("octokit");
 const cities = require("./cities.json");
 const synonyms = require("./synonyms.json");
@@ -8,13 +5,9 @@ const fs = require('fs');
 require('dotenv').config()
 const octokit = new Octokit({ auth: process.env.GitHubToken });
 
-
 async function getContributors(name) {
   name = name.split("/");
-  const {
-    data: { login },
-  } = await octokit.rest.users.getAuthenticated();
-  // console.log("Hello, %s", login);
+
   const iterator = octokit.paginate.iterator(octokit.rest.repos.listContributors, {
     owner: name[0],
     repo: name[1],
@@ -27,21 +20,26 @@ async function getContributors(name) {
   for await (const { data: users } of iterator) {
     for (const user of users) {
       if (user.login.includes("[bot]")) continue;
-      // console.log("User #%d: %d %s ", i++ ,user.id, user.login);
       query += `user${i++}: user(login: "${user.login}") {location login}`;
     }
   }
   query += `}`;
   let locations = await octokit.graphql(query);
-  console.log("Number of contributors", Object.keys(locations).length);
+  let contributorsCount = Object.keys(locations).length;
+  console.log("Number of contributors", contributorsCount);
   let locationCount = {};
   let unknownLocation = new Set();
   let userLocation;
-  let emptyCounter = 0;
+  let nullCount = 0;
+  let unknownCount = 0;
   for (const user in locations) {
     userLocation = locationNormalisation(locations[user].location);
-    if (userLocation == 'unknown') {
-      emptyCounter++;
+    if (userLocation == 'null') {
+      nullCount++;
+      continue;
+    }
+    if (userLocation == 'not found') {
+      unknownCount++;
       unknownLocation.add(locations[user].location);
       continue;
     }
@@ -56,18 +54,21 @@ async function getContributors(name) {
   // locationList.forEach(location => {
   //   let norm = locationNormalisation(location);
   //   if (norm == 'unknown') {
-  //     emptyCounter++;
+  //     nullCount++;
   //     console.log(location, " country code ", locationNormalisation(location));
   //   }
   // });
-  console.log("empty counter ", emptyCounter);
-  console.log(new Array(...unknownLocation).join('\n'));
-  console.log("Locations", locationCount);
+  let unknownLocations = new Array(...unknownLocation).join('\n');
+  console.log("Null Count", nullCount);
+  console.log("Unknown Locations ", unknownLocations);
+  console.log("Locations Count", locationCount);
 
   return {
     locationCount: locationCount,
-    unknownCount: emptyCounter,
-    locationsString: new Array(...unknownLocation).join('\n'),
+    unknownCount: unknownCount,
+    nullCount: nullCount,
+    locationsString: unknownLocations,
+    contributorsCount: contributorsCount,
   };
 }
 
@@ -116,7 +117,7 @@ function getStep(number){
 }
 
 function locationNormalisation(location) {
-  if (!location) return "unknown";
+  if (!location) return "null";
   location = location.replace(/[\(\)/|-]/g, ",");
   let parts = location.split(",");
   parts = parts.map(part => {
@@ -131,7 +132,7 @@ function locationNormalisation(location) {
   });
 
   let spaceBreaks = location.split(" ");
-  let countryCode = 'unknown';
+  let countryCode = 'not found';
   let cityInfo;
 
   cities.every(city => {
@@ -180,9 +181,20 @@ async function drawMapWrapper(name) {
 // projects.forEach(project => {
 //   drawMapWrapper(project);
 // });
-console.log(locationNormalisation("Dresden"))
-console.log(locationNormalisation("San Francisco"))
-console.log(locationNormalisation("HangZhou"))
+// console.log(locationNormalisation("Dresden"))
+// console.log(locationNormalisation("San Francisco"))
+// console.log(locationNormalisation("HangZhou"))
+// console.log(process.title)
+// console.log()
+
+try {
+  if (!process.env.GitHubToken) {
+    throw new Error("GitHub Token not found,\nplease set it as an environment variable,\nYou can obtain your token from this link: https://github.com/settings/tokens");
+  }
+  drawMapWrapper(process.argv[2]);
+} catch (error) {
+  console.log(error.message);
+};
 
 
 // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-contributors
@@ -194,3 +206,6 @@ console.log(locationNormalisation("HangZhou"))
 // https://github.com/octokit/octokit.js#octokitrest-endpoint-methods
 // https://github.com/octokit/plugin-rest-endpoint-methods.js/blob/main/docs/repos/listContributors.md
 // https://github.com/octokit/octokit.js#octokitrest-endpoint-methods
+
+// write a function that takes: accessToken, name, page and returns a list of contributors
+// https://developer.github.com/v3/repos/#list-contributors
