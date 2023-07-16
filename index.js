@@ -94,7 +94,8 @@ async function getContributorsStats(name, auth) {
   };
 }
 
-function getPalletteColors(highest) {
+function getPalletteColors(step, highest) {
+  let step = Math.round(highest / 10);
   let paletteColors = ``;
   for (let i = 0; i <= 10; i++) {
     let numbers = i * step;
@@ -105,14 +106,7 @@ function getPalletteColors(highest) {
   return paletteColors;
 }
 
-function drawMap(locations, name) {
-  var data = fs.readFileSync('map.svg', 'utf-8');
-  let legendDetails = [];
-  let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a - b))
-  var highest = Array.from(legend).pop();
-  let step = Math.round(highest / 10);
-  let paletteColors = getPalletteColors(step, highest);
-  
+function genrateStyle(paletteColors){
   let style = "<style>\n";
   style += paletteColors;
   for (const location in locations.locationCount) {
@@ -121,6 +115,16 @@ function drawMap(locations, name) {
   }
   style += "#legend9 { display: inline !important; }";
   style += "</style>";
+  return style;
+}
+
+function drawMap(locations, name) {
+  var data = fs.readFileSync('map.svg', 'utf-8');
+  let legendDetails = [];
+  let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a - b))
+  var highest = Array.from(legend).pop();
+  let paletteColors = getPalletteColors(highest);
+  let style = genrateStyle(paletteColors, locations, highest);
 
   var newValue = data.replace(/<!-- map_style -->/g, style);
 
