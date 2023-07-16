@@ -8,7 +8,6 @@ require('dotenv').config()
 
 async function getAllContributorsList(name, auth){
   const octokit = new Octokit({ auth: auth });
-  debugger;
   let contributors = [];
   name = name.split("/");
 
@@ -94,9 +93,9 @@ async function getContributorsStats(name, auth) {
   };
 }
 
-function getPalletteColors(step, highest) {
+function getPalletteColors(highest) {
   let legendDetails = [];
-  let step = Math.round(highest / 10);
+  step = Math.round(highest / 10);
   let paletteColors = ``;
   for (let i = 0; i <= 10; i++) {
     let numbers = i * step;
@@ -107,7 +106,7 @@ function getPalletteColors(step, highest) {
   return {paletteColors, legendDetails};
 }
 
-function genrateStyle(paletteColors){
+function genrateStyle(paletteColors, locations, highest){
   let style = "<style>\n";
   style += paletteColors;
   for (const location in locations.locationCount) {
