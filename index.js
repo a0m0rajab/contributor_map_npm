@@ -6,9 +6,9 @@ const synonyms = require("./synonyms.json");
 const fs = require('fs');
 require('dotenv').config()
 
-function getAllContributorsList(name, auth){
+async function getAllContributorsList(name, auth){
   const octokit = new Octokit({ auth: auth });
-
+  debugger;
   let contributors = [];
   name = name.split("/");
 
@@ -21,7 +21,7 @@ function getAllContributorsList(name, auth){
   for await (const { data: users } of iterator) {
     for (const user of users) {
       if (user.type !== "User") continue;
-      contributors.push(user.login);
+      contributors.push(user);
     }
   }
 
@@ -53,17 +53,21 @@ function getLocationsMap(locations){
       locationCount[userLocation] = 1;
     }
   }
-  
   return {locationCount, unknownLocation};
 }
 
 async function getContributorsStats(name, auth) {
+  if (!auth) {
+    auth = process.env.GitHubToken;
+  }
+
   const octokit = new Octokit({ auth: auth });
-  let contributors = getAllContributorsList(name, auth);
+  let contributors = await getAllContributorsList(name, auth);
   let query = getGraphQlQuery(contributors);
   let locations = await octokit.graphql(query);
   let {locationCount, unknownLocation} = getLocationsMap(locations);
 
+  let unknownCount = unknownLocation.size;
   let unknownLocations = new Array(...unknownLocation).join('\n');
   let contributorsCount = Object.keys(locations).length;
 
@@ -75,6 +79,7 @@ async function getContributorsStats(name, auth) {
   //     console.log(location, " country code ", locationNormalisation(location));
   //   }
   // });
+
   console.log("Null Count", locationCount["null"]);
   console.log("Unknown Locations ", unknownLocations);
   console.log("Locations Count", locationCount);
@@ -89,12 +94,7 @@ async function getContributorsStats(name, auth) {
   };
 }
 
-function drawMap(locations, name) {
-  var data = fs.readFileSync('map.svg', 'utf-8');
-  let legendDetails = [];
-  let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a - b))
-  var highest = Array.from(legend).pop();
-  let step = Math.round(highest / 10);
+function getPalletteColors(highest) {
   let paletteColors = ``;
   for (let i = 0; i <= 10; i++) {
     let numbers = i * step;
@@ -102,15 +102,24 @@ function drawMap(locations, name) {
     paletteColors += `.palette-color-${i} { fill: rgba(250,0,0, ${numbers / highest}) !important; }\n`;
 
   }
+  return paletteColors;
+}
+
+function drawMap(locations, name) {
+  var data = fs.readFileSync('map.svg', 'utf-8');
+  let legendDetails = [];
+  let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a - b))
+  var highest = Array.from(legend).pop();
+  let step = Math.round(highest / 10);
+  let paletteColors = getPalletteColors(step, highest);
+  
   let style = "<style>\n";
   style += paletteColors;
-
   for (const location in locations.locationCount) {
     let transparencyStep = getStep(locations.locationCount[location] / highest);
     style += `\t .${location.toLocaleLowerCase()} { fill: rgba(250,0,0, ${transparencyStep}); }\n`
   }
   style += "#legend9 { display: inline !important; }";
-
   style += "</style>";
 
   var newValue = data.replace(/<!-- map_style -->/g, style);
@@ -187,7 +196,7 @@ async function drawMapWrapper(name, auth) {
   let locations = await getContributorsStats(name, auth);
   drawMap(locations, name);
 }
-// drawMapWrapper("calcom/cal.com");
+drawMapWrapper("calcom/cal.com");
 // let projects = [
 //   "tensorflow/tensorflow",
 //   "facebook/react",
