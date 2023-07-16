@@ -198,7 +198,12 @@ async function drawMapWrapper(name, auth) {
   let locations = await getContributorsStats(name, auth);
   drawMap(locations, name);
 }
-drawMapWrapper("calcom/cal.com");
+
+
+// drawMapWrapper("calcom/cal.com");
+
+// Projects Array: 
+
 // let projects = [
 //   "tensorflow/tensorflow",
 //   "facebook/react",
@@ -212,6 +217,7 @@ drawMapWrapper("calcom/cal.com");
 // projects.forEach(project => {
 //   drawMapWrapper(project);
 // });
+
 // console.log(locationNormalisation("Dresden"))
 // console.log(locationNormalisation("San Francisco"))
 // console.log(locationNormalisation("HangZhou"))
