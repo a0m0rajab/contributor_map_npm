@@ -5,6 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug cli.js",
+            "program": "${workspaceFolder}/cli.js",
+            "request": "launch",
+            "args": [
+                "tensorflow/tensorflow",
+                "ghp_1q2w3e4r5t6y7u8i9o0p1q2w3e4r5t6y7u8i9o0",
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        
+        {
             "type": "node",
             "request": "launch",
             "name": "Debug index",
