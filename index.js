@@ -6,9 +6,10 @@ const synonyms = require("./synonyms.json");
 const fs = require('fs');
 require('dotenv').config()
 
-async function getContributorsStats(name, auth) {
+function getAllContributorsList(name, auth){
   const octokit = new Octokit({ auth: auth });
 
+  let contributors = [];
   name = name.split("/");
 
   const iterator = octokit.paginate.iterator(octokit.rest.repos.listContributors, {
@@ -17,19 +18,34 @@ async function getContributorsStats(name, auth) {
     per_page: 100,
   });
 
-  // iterate through each response
-  let i = 0;
-  let query = `{`;
   for await (const { data: users } of iterator) {
     for (const user of users) {
-      if (user.login.includes("[bot]")) continue;
-      query += `user${i++}: user(login: "${user.login}") {location login}`;
+      if (user.type !== "User") continue;
+      contributors.push(user.login);
     }
   }
+
+  return contributors;
+};
+
+function getGraphQlQuery(contributors) {
+  let query = `{`;
+  contributors.forEach((user, i) => {
+    query += `user${i++}: user(login: "${user.login}") {location login}`;
+  });
   query += `}`;
+  return query;
+}
+
+async function getContributorsStats(name, auth) {
+  const octokit = new Octokit({ auth: auth });
+
+  let contributors = getAllContributorsList(name, auth);
+  let query = getGraphQlQuery(contributors);
   let locations = await octokit.graphql(query);
   let contributorsCount = Object.keys(locations).length;
   console.log("Number of contributors", contributorsCount);
+
   let locationCount = {};
   let unknownLocation = new Set();
   let userLocation;
