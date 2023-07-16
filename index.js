@@ -37,30 +37,15 @@ function getGraphQlQuery(contributors) {
   return query;
 }
 
-async function getContributorsStats(name, auth) {
-  const octokit = new Octokit({ auth: auth });
-
-  let contributors = getAllContributorsList(name, auth);
-  let query = getGraphQlQuery(contributors);
-  let locations = await octokit.graphql(query);
-  let contributorsCount = Object.keys(locations).length;
-  console.log("Number of contributors", contributorsCount);
-
+function getLocationsMap(locations){
   let locationCount = {};
   let unknownLocation = new Set();
   let userLocation;
-  let nullCount = 0;
-  let unknownCount = 0;
+
   for (const user in locations) {
     userLocation = locationNormalisation(locations[user].location);
-    if (userLocation == 'null') {
-      nullCount++;
-      continue;
-    }
     if (userLocation == 'not found') {
-      unknownCount++;
       unknownLocation.add(locations[user].location);
-      continue;
     }
     if (locationCount[userLocation]) {
       locationCount[userLocation]++;
@@ -68,6 +53,19 @@ async function getContributorsStats(name, auth) {
       locationCount[userLocation] = 1;
     }
   }
+  
+  return {locationCount, unknownLocation};
+}
+
+async function getContributorsStats(name, auth) {
+  const octokit = new Octokit({ auth: auth });
+  let contributors = getAllContributorsList(name, auth);
+  let query = getGraphQlQuery(contributors);
+  let locations = await octokit.graphql(query);
+  let {locationCount, unknownLocation} = getLocationsMap(locations);
+
+  let unknownLocations = new Array(...unknownLocation).join('\n');
+  let contributorsCount = Object.keys(locations).length;
 
   // let locationList = Object.keys(locationCount);
   // locationList.forEach(location => {
@@ -77,15 +75,15 @@ async function getContributorsStats(name, auth) {
   //     console.log(location, " country code ", locationNormalisation(location));
   //   }
   // });
-  let unknownLocations = new Array(...unknownLocation).join('\n');
-  console.log("Null Count", nullCount);
+  console.log("Null Count", locationCount["null"]);
   console.log("Unknown Locations ", unknownLocations);
   console.log("Locations Count", locationCount);
+  console.log("Number of contributors", contributorsCount);
 
   return {
     locationCount: locationCount,
     unknownCount: unknownCount,
-    nullCount: nullCount,
+    nullCount: locationCount["null"],
     locationsString: unknownLocations,
     contributorsCount: contributorsCount,
   };
