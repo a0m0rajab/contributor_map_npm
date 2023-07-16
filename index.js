@@ -1,11 +1,14 @@
+// yes, the code is not clean.
+
 const { Octokit } = require("octokit");
 const cities = require("./cities.json");
 const synonyms = require("./synonyms.json");
 const fs = require('fs');
 require('dotenv').config()
-const octokit = new Octokit({ auth: process.env.GitHubToken });
 
-async function getContributors(name) {
+async function getContributorsStats(name, auth) {
+  const octokit = new Octokit({ auth: auth });
+
   name = name.split("/");
 
   const iterator = octokit.paginate.iterator(octokit.rest.repos.listContributors, {
@@ -75,44 +78,44 @@ async function getContributors(name) {
 function drawMap(locations, name) {
   var data = fs.readFileSync('map.svg', 'utf-8');
   let legendDetails = [];
-  let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a- b))
+  let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a - b))
   var highest = Array.from(legend).pop();
   let step = Math.round(highest / 10);
   let paletteColors = ``;
   for (let i = 0; i <= 10; i++) {
     let numbers = i * step;
     legendDetails[i] = numbers;
-    paletteColors += `.palette-color-${i} { fill: rgba(250,0,0, ${numbers/highest}) !important; }\n`;
+    paletteColors += `.palette-color-${i} { fill: rgba(250,0,0, ${numbers / highest}) !important; }\n`;
 
   }
   let style = "<style>\n";
   style += paletteColors;
 
-  for (const location in locations.locationCount){
-    let transparencyStep = getStep(locations.locationCount[location]/highest);
+  for (const location in locations.locationCount) {
+    let transparencyStep = getStep(locations.locationCount[location] / highest);
     style += `\t .${location.toLocaleLowerCase()} { fill: rgba(250,0,0, ${transparencyStep}); }\n`
   }
   style += "#legend9 { display: inline !important; }";
-  
+
   style += "</style>";
 
-  var newValue = data.replace(/<!-- map_style -->/g, style); 
+  var newValue = data.replace(/<!-- map_style -->/g, style);
 
   for (let i = 0; i <= 10; i++) {
     newValue = newValue.replace(new RegExp(`>%${i}<`, 'g'), `>${legendDetails[i]}<`);
   }
 
-  for (const location in locations.locationCount){
+  for (const location in locations.locationCount) {
     let lowerCase = location.toLocaleLowerCase();
     newValue = newValue.replace(new RegExp(`<!-- ${lowerCase}_contributions -->`, "g"), ` ${locations.locationCount[location]} Contributors`);
   };
 
-  fs.writeFileSync( name.replace(/\//g,'_') + '.svg', newValue, 'utf-8');
+  fs.writeFileSync(name.replace(/\//g, '_') + '.svg', newValue, 'utf-8');
 
   console.log('readFileSync complete');
 }
 
-function getStep(number){
+function getStep(number) {
   return Math.ceil(number * 10) / 10;
 }
 
@@ -163,8 +166,11 @@ function locationNormalisation(location) {
   return countryCode;
 }
 
-async function drawMapWrapper(name) {
-  let locations = await getContributors(name);
+async function drawMapWrapper(name, auth) {
+  if (typeof process !== 'object'){
+    return console.log("Not running in node");
+  }
+  let locations = await getContributorsStats(name, auth);
   drawMap(locations, name);
 }
 // drawMapWrapper("calcom/cal.com");
@@ -187,15 +193,7 @@ async function drawMapWrapper(name) {
 // console.log(process.title)
 // console.log()
 
-try {
-  if (!process.env.GitHubToken) {
-    throw new Error("GitHub Token not found,\nplease set it as an environment variable,\nYou can obtain your token from this link: https://github.com/settings/tokens");
-  }
-  drawMapWrapper(process.argv[2]);
-} catch (error) {
-  console.log(error.message);
-};
-
+module.exports = {drawMapWrapper, getContributorsStats, drawMap, locationNormalisation};
 
 // https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-contributors
 // https://github.com/tunaitis/contributor-map/blob/master/internal/github/github.go
@@ -209,3 +207,5 @@ try {
 
 // write a function that takes: accessToken, name, page and returns a list of contributors
 // https://developer.github.com/v3/repos/#list-contributors
+// https://stackoverflow.com/questions/34550890/how-to-detect-if-script-is-running-in-browser-or-in-node-js
+// https://levelup.gitconnected.com/how-to-build-a-cli-npm-package-3ba98d6f9d4e
