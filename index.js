@@ -95,6 +95,7 @@ async function getContributorsStats(name, auth) {
 }
 
 function getPalletteColors(step, highest) {
+  let legendDetails = [];
   let step = Math.round(highest / 10);
   let paletteColors = ``;
   for (let i = 0; i <= 10; i++) {
@@ -103,7 +104,7 @@ function getPalletteColors(step, highest) {
     paletteColors += `.palette-color-${i} { fill: rgba(250,0,0, ${numbers / highest}) !important; }\n`;
 
   }
-  return paletteColors;
+  return {paletteColors, legendDetails};
 }
 
 function genrateStyle(paletteColors){
@@ -120,12 +121,10 @@ function genrateStyle(paletteColors){
 
 function drawMap(locations, name) {
   var data = fs.readFileSync('map.svg', 'utf-8');
-  let legendDetails = [];
   let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a - b))
   var highest = Array.from(legend).pop();
-  let paletteColors = getPalletteColors(highest);
+  let {paletteColors, legendDetails} = getPalletteColors(highest);
   let style = genrateStyle(paletteColors, locations, highest);
-
   var newValue = data.replace(/<!-- map_style -->/g, style);
 
   for (let i = 0; i <= 10; i++) {
@@ -139,7 +138,7 @@ function drawMap(locations, name) {
 
   fs.writeFileSync(name.replace(/\//g, '_') + '.svg', newValue, 'utf-8');
 
-  console.log('readFileSync complete');
+  console.log('Done.');
 }
 
 function getStep(number) {
