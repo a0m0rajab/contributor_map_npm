@@ -7,6 +7,14 @@ The aim of this project is to create a data visualisation map for a repository s
 
 If you want to test this through the CLI you need to run:
 
+You can set the GitHub token with this command: 
+
+```cmd
+node cli.js set GITHUB_TOKEN
+```
+
+If you set the GitHub token with previous code, you can omit the token requirement when you draw the map.
+
 ```cmd
 node cli.js OWENER/REPO GITHUB_TOKEN
 ```
