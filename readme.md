@@ -1,5 +1,9 @@
 # Contributors MAP CLI 
 
+Example result: 
+
+![Microsoft TypeScript heatmap](./microsoft_TypeScript.svg)
+
 The aim of this project is to create a data visualisation map for a repository showing the locations of project contributors. 
 
 
