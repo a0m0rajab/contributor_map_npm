@@ -119,12 +119,12 @@ function genrateStyle(paletteColors, locations, highest){
 }
 
 function drawMap(locations, name) {
-  var data = fs.readFileSync('map.svg', 'utf-8');
+  let  data = fs.readFileSync('map.svg', 'utf-8');
   let legend = new Set(Object.values(locations.locationCount).sort((a, b) => a - b))
-  var highest = Array.from(legend).pop();
+  let  highest = Array.from(legend).pop();
   let {paletteColors, legendDetails} = getPalletteColors(highest);
   let style = genrateStyle(paletteColors, locations, highest);
-  var newValue = data.replace(/<!-- map_style -->/g, style);
+  let newValue = data.replace(/<!-- map_style -->/g, style);
 
   for (let i = 0; i <= 10; i++) {
     newValue = newValue.replace(new RegExp(`>%${i}<`, 'g'), `>${legendDetails[i]}<`);
@@ -192,9 +192,6 @@ function locationNormalisation(location) {
 }
 
 async function drawMapWrapper(name, auth) {
-  if (typeof process !== 'object'){
-    return console.log("Not running in node");
-  }
   let locations = await getContributorsStats(name, auth);
   drawMap(locations, name);
 }
