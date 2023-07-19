@@ -37,10 +37,10 @@ Thanks for:
 
 [Simon Tunaitis](https://github.com/tunaitis) for writing the [go code](https://github.com/tunaitis/contributor-map) which been turned into JS, 
 
-[Brian Douglas](https://github.com/bdougie) for expressing his interes in this project, 
+[Brian Douglas](https://github.com/bdougie) for expressing his [interest](https://github.com/orgs/open-sauced/discussions/7) in this project, 
 
 [Prof. Akif Eyler](https://github.com/maeyler) for his impact on my thoughts, 
 
 My family for the whole support they provide,  
 
-And for all the developers out theire who created some code that we used and learnt from. 
+And for all the developers who created some code we used and learned from. 
