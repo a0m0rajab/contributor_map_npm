@@ -4,12 +4,12 @@ Example result:
 
 ![Microsoft TypeScript heatmap](./microsoft_TypeScript.svg)
 
-The aim of this project is to create a data visualisation map for a repository showing the locations of project contributors. 
+This project aims to create a data visualization map for a repository showing the locations of project contributors. 
 
 
 ## usage: 
 
-If you want to test this through the CLI you need to run:
+If you want to test this through the CLI, you need to run:
 
 You can set the GitHub token with this command: 
 
@@ -17,13 +17,13 @@ You can set the GitHub token with this command:
 node cli.js set GITHUB_TOKEN
 ```
 
-If you set the GitHub token with previous code, you can omit the token requirement when you draw the map.
+If you set the GitHub token with the previous code, you can omit the token requirement when you draw the map.
 
 ```cmd
-node cli.js OWENER/REPO GITHUB_TOKEN
+node cli.js OWNER/REPO GITHUB_TOKEN
 ```
 
-or you can use the `index.js` file and write a list of projects in the array to print them.
+Or you can use the `index.js` file and write a list of projects in the array to print them.
 
 ## Development Process: 
 
